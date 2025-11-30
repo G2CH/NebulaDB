@@ -1,0 +1,5 @@
+{
+  "name": "NebulaDB",
+  "description": "A modern, high-performance Database GUI with AI-powered SQL generation, featuring a VS Code-like aesthetic and minimalist design.",
+  "requestFramePermissions": []
+}

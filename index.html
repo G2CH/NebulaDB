@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NebulaDB - Modern SQL Client</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            zinc: {
+              850: 'var(--bg-tertiary)',
+              900: 'var(--bg-secondary)',
+              950: 'var(--bg-primary)',
+              100: 'var(--text-primary)',
+              200: 'var(--text-primary)',
+              500: 'var(--text-secondary)',
+            },
+            violet: {
+              550: 'var(--accent-primary)',
+              600: 'var(--accent-primary)',
+              700: 'var(--accent-hover)',
+            }
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    /* Enhanced Glassmorphism Variables */
+    :root {
+      --bg-primary: #09090b;
+      --bg-secondary: rgba(24, 24, 27, 0.7);
+      --bg-tertiary: rgba(39, 39, 42, 0.6);
+      --glass-bg: rgba(18, 18, 27, 0.65);
+      --glass-strong-bg: rgba(18, 18, 27, 0.85);
+      --glass-subtle-bg: rgba(18, 18, 27, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-highlight: rgba(255, 255, 255, 0.05);
+      --border-secondary: rgba(255, 255, 255, 0.1);
+      --text-primary: #e4e4e7;
+      --text-secondary: #a1a1aa;
+      --text-tertiary: #52525b;
+      --text-muted: #3f3f46;
+      --accent-primary: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --accent-glow: rgba(139, 92, 246, 0.3);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.25);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.35);
+      --shadow-glow: 0 0 20px var(--accent-glow);
+    }
+
+    .light {
+      --bg-primary: #ffffff;
+      --bg-secondary: rgba(244, 244, 245, 0.9);
+      --bg-tertiary: rgba(228, 228, 231, 0.8);
+      --glass-bg: rgba(255, 255, 255, 0.75);
+      --glass-strong-bg: rgba(255, 255, 255, 0.9);
+      --glass-subtle-bg: rgba(244, 244, 245, 0.5);
+      --glass-border: rgba(0, 0, 0, 0.08);
+      --glass-highlight: rgba(0, 0, 0, 0.03);
+      --border-secondary: rgba(0, 0, 0, 0.12);
+      --text-primary: #18181b;
+      --text-secondary: #52525b;
+      --text-tertiary: #9ca3af;
+      --text-muted: #d4d4d8;
+      --accent-primary: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --accent-glow: rgba(139, 92, 246, 0.2);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+    }
+
+    /* Glassmorphism Utility Classes */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid var(--glass-border);
+    }
+
+    .glass-strong {
+      background: var(--glass-strong-bg);
+      backdrop-filter: blur(20px) saturate(200%);
+      -webkit-backdrop-filter: blur(20px) saturate(200%);
+      border: 1px solid var(--glass-border);
+    }
+
+    .glass-subtle {
+      background: var(--glass-subtle-bg);
+      backdrop-filter: blur(8px) saturate(150%);
+      -webkit-backdrop-filter: blur(8px) saturate(150%);
+      border: 1px solid var(--glass-border);
+    }
+
+    /* Gradient Borders */
+    .border-gradient {
+      position: relative;
+      border: none;
+    }
+
+    .border-gradient::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg,
+          rgba(139, 92, 246, 0.5),
+          rgba(99, 102, 241, 0.3),
+          rgba(139, 92, 246, 0.5));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* Glow Effects */
+    .glow {
+      box-shadow: 0 0 20px var(--accent-glow),
+        0 0 40px rgba(139, 92, 246, 0.1);
+    }
+
+    .glow-hover {
+      transition: box-shadow 0.3s ease;
+    }
+
+    .glow-hover:hover {
+      box-shadow: 0 0 25px var(--accent-glow),
+        0 0 50px rgba(139, 92, 246, 0.15);
+    }
+
+    /* Smooth Animations */
+    @keyframes shimmer {
+      0% {
+        background-position: -200% center;
+      }
+
+      100% {
+        background-position: 200% center;
+      }
+    }
+
+    .shimmer {
+      background-size: 200% auto;
+      animation: shimmer 3s linear infinite;
+    }
+
+    /* Custom Scrollbar with Glass Effect */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.3);
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, 0.5);
+    }
+
+    /* No Scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Smooth Transitions */
+    * {
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ========================================
+       THEME-AWARE UTILITY CLASSES
+       These classes automatically adapt to light/dark themes
+       ======================================== */
+
+    /* Text Colors */
+    .text-theme-primary {
+      color: var(--text-primary);
+    }
+
+    .text-theme-secondary {
+      color: var(--text-secondary);
+    }
+
+    .text-theme-tertiary {
+      color: var(--text-tertiary);
+    }
+
+    .text-theme-muted {
+      color: var(--text-muted);
+    }
+
+    /* Hover Text Colors */
+    .hover-text-primary:hover {
+      color: var(--text-primary);
+    }
+
+    .hover-text-secondary:hover {
+      color: var(--text-secondary);
+    }
+
+    /* Background Colors */
+    .bg-theme-primary {
+      background-color: var(--bg-primary);
+    }
+
+    .bg-theme-secondary {
+      background-color: var(--bg-secondary);
+    }
+
+    .bg-theme-tertiary {
+      background-color: var(--bg-tertiary);
+    }
+
+    .bg-theme-hover {
+      background-color: var(--bg-hover);
+    }
+
+    /* Hover Background Colors */
+    .hover-bg-tertiary:hover {
+      background-color: var(--bg-tertiary);
+    }
+
+    .hover-bg-hover:hover {
+      background-color: var(--bg-hover);
+    }
+
+    /* Border Colors */
+    .border-theme-primary {
+      border-color: var(--glass-border);
+    }
+
+    .border-theme-secondary {
+      border-color: var(--border-secondary);
+    }
+
+    /* Common UI Patterns */
+    .panel-surface {
+      background-color: var(--bg-primary);
+      border-color: var(--glass-border);
+      color: var(--text-primary);
+    }
+
+    .panel-header {
+      background-color: var(--bg-secondary);
+      border-color: var(--glass-border);
+      color: var(--text-secondary);
+    }
+
+    .button-base {
+      background-color: var(--bg-tertiary);
+      border-color: var(--border-secondary);
+      color: var(--text-tertiary);
+      transition: all 0.2s ease;
+    }
+
+    .button-base:hover {
+      background-color: var(--bg-hover);
+      color: var(--text-secondary);
+    }
+
+    .input-base {
+      background-color: var(--bg-secondary);
+      border-color: var(--border-secondary);
+      color: var(--text-primary);
+    }
+
+    .input-base:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .tab-inactive {
+      background-color: var(--bg-secondary);
+      color: var(--text-tertiary);
+    }
+
+    .tab-inactive:hover {
+      background-color: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+
+    .tab-active {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    .divider {
+      border-color: var(--glass-border);
+    }
+  </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-resizable-panels": "https://esm.sh/react-resizable-panels@2.1.7?external=react,react-dom",
+    "lucide-react": "https://esm.sh/lucide-react@0.460.0?external=react,react-dom",
+    "@monaco-editor/react": "https://esm.sh/@monaco-editor/react@4.6.0?external=react,react-dom",
+    "@tanstack/react-table": "https://esm.sh/@tanstack/react-table@8.10.7?external=react,react-dom",
+    "@radix-ui/react-context-menu": "https://esm.sh/@radix-ui/react-context-menu@2.1.5?external=react,react-dom"
+  }
+}
+</script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
