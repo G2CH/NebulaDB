@@ -61,7 +61,7 @@ jobs:
           targets: ${{ matrix.platform == 'macos-13' && 'x86_64-apple-darwin' || matrix.platform == 'macos-14' && 'aarch64-apple-darwin' || matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc' || '' }}
 
       - name: install frontend dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build and Upload Artifacts
         uses: tauri-apps/tauri-action@v0
